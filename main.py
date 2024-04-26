@@ -141,5 +141,57 @@ def download_file(filename):
     return send_from_directory(get_user_dir(session.get('user_email')), filename)
 
 
+@app.route('/api/download/<email>/<filename>')
+def api_download_file(email, filename):
+    password = request.json.get('password')
+    db_sess = db_session.create_session()
+    user = db_sess.query(User).filter(User.email == email).first()
+    if user and user.check_password(password):
+        return send_from_directory(get_user_dir(email), filename)
+    return redirect('/')
+
+
+@app.route('/api/upload/<email>', methods=['POST'])
+def api_upload(email):
+    print('!!!')
+    if 'file' not in request.files:
+        return redirect('/')
+    password = request.files['password']
+    file = request.files['file']
+    if file.filename == '':
+        return redirect('/')
+    print(file, '!')
+    db_sess = db_session.create_session()
+    user = db_sess.query(User).filter(User.email == email).first()
+    if file and check_filename(file.filename) and user and user.check_password(password):
+        filename = secure_filename(file.filename)
+        file.save(os.path.join(get_user_dir(email), filename))
+        return redirect('/')
+    return redirect('/')
+
+
+@app.route('/api/delete/<email>/<filename>', methods=['POST'])
+def api_delete_file(email, filename):
+    password = request.json.get('password')
+    filepath = os.path.join(get_user_dir(email), filename)
+    db_sess = db_session.create_session()
+    user = db_sess.query(User).filter(User.email == email).first()
+    if os.path.exists(filepath) and user and user.check_password(password):
+        os.remove(filepath)
+    return redirect('/')
+
+
+@app.route('/api/rename/<email>/<filename>/<new_filename>', methods=['POST'])
+def api_rename_file(email, filename, new_filename):
+    password = request.json.get('password')
+    db_sess = db_session.create_session()
+    user = db_sess.query(User).filter(User.email == email).first()
+    if new_filename and user and user.check_password(password):
+        old_filepath = os.path.join(get_user_dir(email), filename)
+        new_filepath = os.path.join(get_user_dir(email), new_filename)
+        os.rename(old_filepath, new_filepath)
+    return redirect('/')
+
+
 if __name__ == '__main__':
     app.run(port=8080, host='127.0.0.1', debug=True)
