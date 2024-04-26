@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <title>Хранилище</title>
+</head>
+<body>
+<header>
+    <nav class="navbar navbar-light bg-light">
+        <a class="navbar-brand" href="/">Облачное хранилище</a>
+        <a class="navbar-brand" href="/logout">{{ current_user.email[:current_user.email.find('@')] }}</a>
+    </nav>
+</header>
+    <div class="container mt-5">
+        <h1 class="mb-4">Загрузка файлов</h1>
+        <form action="/upload" method="post" enctype="multipart/form-data" class="mb-4">
+            <div class="input-group">
+                <div class="custom-file">
+                    <input type="file" class="custom-file-input" id="inputGroupFile" name="file" accept=".txt, .pdf, .png, .jpg, .jpeg, .gif">
+                    <label class="custom-file-label" for="inputGroupFile">Выбрать файл</label>
+                </div>
+                <div class="input-group-append">
+                    <button class="btn btn-primary" type="submit">Загрузить</button>
+                </div>
+            </div>
+        </form>
+        <h2>Ваше хранилще</h2>
+        <ul class="list-group">
+            {% for file in files %}
+            <li class="list-group-item">
+                <a href="{{ url_for('download_file', filename=file) }}">{{ file }}</a>
+                <form action="{{ url_for('delete_file', filename=file) }}" method="post" class="float-right ml-2">
+                    <button type="submit" class="btn btn-danger btn-sm">Удалить</button>
+                </form>
+                <form action="{{ url_for('rename_file', filename=file) }}" method="post" class="float-right">
+                    <div class="form-group">
+                        <input type="text" class="form-control form-control-sm" name="new_filename" placeholder="New filename">
+                    </div>
+                    <button type="submit" class="btn btn-secondary btn-sm">Переименовать</button>
+                </form>
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+</body>
+</html>
